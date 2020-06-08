@@ -1,0 +1,405 @@
+//Código feito em javascript utilizado no Outsystems
+//------------------------------------customersController------------------------------------
+
+//$parameters.CustomerCriado = false;
+	var params1 = {};
+
+    params1.name = $parameters.NomeCompleto, 
+    params1.address = $parameters.Endereco, 
+    params1.zip_code = $parameters.CodPostal, 
+    params1.city = $parameters.Cidade, 
+    params1.num =$parameters.Telemovel, 
+    params1.vat = $parameters.NContribuinte 
+
+    if ($parameters.NomeCompleto.isNull || $parameters.Endereco.isNull|| $parameters.CodPostal.isNull || $parameters.Cidade.isNull || $parameters.Telemovel === "" || $parameters.NContribuinte === "" || $parameters.Pass.isNull)
+	{
+		$public.FeedbackMessage.showFeedbackMessage("Tem de preencher todos os campos!", 2);
+		return;
+	}
+	fetch('http://127.0.0.1:8081/moloni/costumers/insert',{ 
+		 headers: { 'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                     },
+		method: 'POST',
+		body: JSON.stringify(params1)
+	}).then(function (response){
+	    if(!response.ok) {
+		    $public.FeedbackMessage.showFeedbackMessage("Ocorreu um erro", 3);
+			console.log(response.status);
+			console.log(response.statusText);
+			console.log(response.headers);
+			console.log(response.url);
+			
+			if(response.status === 409){
+				$public.FeedbackMessage.showFeedbackMessage("Ocorreu um erro", 3);
+			} else {
+				throw Error(response.url);
+			}
+		}
+          $parameters.CustomerCriado = true;
+          $resolve();
+		
+	}).then(function (result){
+	}).catch(function(err) {$public.FeedbackMessage.showFeedbackMessage("Ocorreu um erro", 3); console.log(err);
+	});
+	
+
+
+//------------------------------------getCustomerController------------------------------------	
+
+fetch('http://127.0.0.1:8081/moloni/costumers/all',{ 
+		 headers: { 'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'https://claudiasilva.outsystemscloud.com'
+                     },
+		method: 'POST'
+	}).then(function (response){
+		if(!response.ok) {
+		    $public.FeedbackMessage.showFeedbackMessage("Ocorreu um erro", 3);
+		    window.location.reload();
+			console.log(response.status);
+			console.log(response.statusText);
+			console.log(response.headers);
+			console.log(response.url);
+			
+			if(response.status === 409){
+				$public.FeedbackMessage.showFeedbackMessage("Ocorreu um erro", 3);
+				window.location.reload();
+			} else {
+				throw Error(response.url);
+			}
+		}else{
+		var res = response.json();
+	    var original = Promise.resolve(res);
+        var cast = Promise.resolve(original);
+        cast.then(function(v) {
+          console.log(v);
+          var lenght = v.length;
+          for(var i = 0; i<lenght; i++){
+              var telemovel = v[i].number;
+              if(telemovel==$parameters.user){
+                  $parameters.ruaUser = v[i].address;
+                  $parameters.codUser = v[i].zip_code;
+                  $parameters.cidUser = v[i].city;
+                  $parameters.idCliente = v[i].customer_id;
+                  
+                  $resolve();
+              }
+          }
+          console.log($parameters.ruaUser + " cod: " + $parameters.codUser + " cid: " + $parameters.cidUser + " id: " + $parameters.idCliente);
+        });
+		}
+	}).then(function (result){
+	}).catch(function(err) {$public.FeedbackMessage.showFeedbackMessage("Ocorreu um erro", 3); window.location.reload(); console.log(err);
+	});
+	
+
+
+//------------------------------------getProductsController------------------------------------	
+
+fetch('http://127.0.0.1:8081/moloni/sem/receita/all',{ 
+		 headers: { 'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'https://claudiasilva.outsystemscloud.com'
+                     },
+		method: 'POST'
+	}).then(function (response){
+		if(!response.ok) {
+		    $public.FeedbackMessage.showFeedbackMessage("Ocorreu um erro", 3);
+		    window.location.reload();
+			console.log(response.status);
+			console.log(response.statusText);
+			console.log(response.headers);
+			console.log(response.url);
+			
+			if(response.status === 409){
+				$public.FeedbackMessage.showFeedbackMessage("Ocorreu um erro", 3);
+				window.location.reload();
+			} else {
+				throw Error(response.url);
+			}
+		}else{
+		var res = response.json();
+	    var original = Promise.resolve(res);
+        var cast = Promise.resolve(original);
+        cast.then(function(v) {
+          console.log(v);
+          $parameters.length = v.length;
+          console.log($parameters.length);
+          for(var i = 0; i<$parameters.length; i++){
+            $parameters.nomeMed += v[i].name + ";";
+            $parameters.catMed += v[i].category.name + ";";
+            $parameters.priceMed += v[i].price + ";";
+            $parameters.idMed += v[i].product_id + ";";
+            $parameters.stockMed += v[i].stock + ";";
+            
+            $resolve();
+          }
+         console.log($parameters.nomeMed);
+        });
+		}
+	}).then(function (result){
+	}).catch(function(err) {$public.FeedbackMessage.showFeedbackMessage("Ocorreu um erro", 3); window.location.reload(); console.log(err);
+	});
+	
+	
+	
+//------------------------------------paypalController------------------------------------	
+
+var items = $parameters.paypal;
+console.log(items);
+
+fetch('http://127.0.0.1:8081/paypal/pay',{ 
+		 headers: { 'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'https://claudiasilva.outsystemscloud.com'
+                     },
+		method: 'POST',
+		body: items
+	}).then(function (response){
+		if(!response.ok) {
+		    $public.FeedbackMessage.showFeedbackMessage(response.statusText, 2);
+			console.log(response.status);
+			console.log(response.statusText);
+			console.log(response.headers);
+			console.log(response.url);
+			
+			if(response.status === 409){
+				$public.FeedbackMessage.showFeedbackMessage("Erro", 3);
+			} else {
+				throw Error(response.url);
+			}
+		}else{
+		var res = response.text();
+	    var original = Promise.resolve(res);
+        var cast = Promise.resolve(original);
+        cast.then(function(v) {
+          console.log(v);
+         window.open(v);
+         
+        });
+		}
+	}).then(function (result){
+	}).catch(function(err) {$public.FeedbackMessage.showFeedbackMessage("Erro", 3); console.log(err);
+	});
+	
+	
+
+//------------------------------------faturaController------------------------------------	
+
+var json = $parameters.json;
+console.log(json);
+
+fetch('http://127.0.0.1:8081/moloni/fatura/insert',{ 
+		 headers: { 'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'https://claudiasilva.outsystemscloud.com'
+                     },
+		method: 'POST',
+		body: json
+	}).then(function (response){
+		if(!response.ok) {
+		    $public.FeedbackMessage.showFeedbackMessage(response.statusText, 2);
+			console.log(response.status);
+			console.log(response.statusText);
+			console.log(response.headers);
+			console.log(response.url);
+			
+			if(response.status === 409){
+				$public.FeedbackMessage.showFeedbackMessage("Erro 409", 3);
+			} else {
+				throw Error(response.statusText);
+			}
+		}
+		//$public.FeedbackMessage.showFeedbackMessage("Fatura registada com sucesso.", 1);
+		var res = response.json();
+	    console.log(res);
+	    var original = Promise.resolve(res);
+        var cast = Promise.resolve(original);
+        cast.then(function(v) {
+          $parameters.idFatura = v.id_fatura;
+          console.log($parameters.idFatura);
+          $resolve();
+        });
+	}).then(function (result){
+	}).catch(function(err) {$public.FeedbackMessage.showFeedbackMessage("Erro" + err, 3); console.log(err);
+	});
+	
+	
+	
+//------------------------------------encomendaNavController------------------------------------
+
+var destino = $parameters.jsonDestino
+//console.log(destino);
+
+fetch('http://127.0.0.1:8081/nav/encomenda',{ 
+		 headers: { 'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'https://claudiasilva.outsystemscloud.com'
+                     },
+		method: 'POST',
+		body: destino
+	}).then(function (response){
+		if(!response.ok) {
+		    $public.FeedbackMessage.showFeedbackMessage(response.statusText, 2);
+			console.log(response.status);
+			console.log(response.statusText);
+			console.log(response.headers);
+			console.log(response.url);
+			
+			if(response.status === 409){
+				$public.FeedbackMessage.showFeedbackMessage("Erro", 3);
+			} else {
+				throw Error(response.url);
+			}
+		}else{
+		var res = response.json();
+	    console.log(res);
+	    var original = Promise.resolve(res);
+        var cast = Promise.resolve(original);
+        cast.then(function(v) {
+          $parameters.nEnconmenda = v.Numero_encomenda;
+          $parameters.farmacia = v.Farmacia;
+          $parameters.codDest = v.Endereço_Entrega.postalCode;
+          $parameters.cidDest = v.Endereço_Entrega.city;
+          $parameters.ruaDest = v.Endereço_Entrega.street;
+          console.log($parameters.nEnconmenda + " \n FARMACIA: " + $parameters.farmacia + "\n CODEPOSTAL: " + $parameters.codDest);
+          $resolve();
+        });
+        
+		}
+	}).then(function (result){
+	}).catch(function(err) {$public.FeedbackMessage.showFeedbackMessage("Erro", 3); console.log(err);
+	});
+	
+
+
+//------------------------------------distanciaController------------------------------------
+
+var codigo_postal = $parameters.codigo_postal;
+//console.log(codigo_postal);
+
+fetch('http://127.0.0.1:8081/longlat', {
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': 'https://claudiasilva.outsystemscloud.com'
+    },
+    method: 'POST',
+    body: codigo_postal
+}).then(function (response) {
+    return response.json(); // pass the data as promise to next then block
+}).then(function (data) {
+    $parameters.long = data.long;
+    $parameters.lat = data.lat;
+    console.log("long: " + $parameters.long + "\n lat: " + $parameters.lat);
+    $resolve();
+
+});
+
+
+
+//------------------------------------tempoController------------------------------------
+
+var longlat = $parameters.longlat;
+//console.log(longlat);
+
+fetch('http://127.0.0.1:8081/tempo', {
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': 'https://claudiasilva.outsystemscloud.com'
+    },
+    method: 'POST',
+    body: longlat
+}).then(function (response) {
+    return response.json(); // pass the data as promise to next then block
+}).then(function (data) {
+    $parameters.tempo = data.Tempo;
+    console.log($parameters.tempo);
+    $resolve();
+});
+
+
+
+//------------------------------------tokenController------------------------------------
+
+fetch('http://127.0.0.1:8081/refreshtoken',{ 
+		 headers: { 'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                     },
+		method: 'GET'
+	}).then(function (response){
+	    var res = response.text();
+	   // console.log(res);
+	    var original = Promise.resolve(res);
+        var cast = Promise.resolve(original);
+        cast.then(function(v) {
+          $parameters.token = v
+          console.log(v);
+          $resolve();
+        });
+    });
+
+
+
+//------------------------------------transporteController------------------------------------
+
+var token = $parameters.jsontoken;
+fetch('http://127.0.0.1:8081/jasmin/transporte',{ 
+		 headers: { 'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'https://claudiasilva.outsystemscloud.com'
+                     },
+		method: 'POST',
+		body: token
+	}).then(function (response){
+		if(!response.ok) {
+		    $public.FeedbackMessage.showFeedbackMessage(response.statusText, 2);
+			console.log(response.status);
+			console.log(response.statusText);
+			console.log(response.headers);
+			console.log(response.url);
+			
+			if(response.status === 409){
+				$public.FeedbackMessage.showFeedbackMessage("Erro", 3);
+			} else {
+				throw Error(response.url);
+			}
+		}else{
+		var res = response.json();
+	    //console.log(res);
+	    var original = Promise.resolve(res);
+        var cast = Promise.resolve(original);
+        cast.then(function(v) {
+          $parameters.transporte = v.Nome_Transporte;
+          console.log(v);
+          $resolve();
+        });
+		}
+	}).then(function (result){
+	}).catch(function(err) {$public.FeedbackMessage.showFeedbackMessage("Erro", 3); console.log(err);
+	});
+	
+	
+	
+//------------------------------------pdfFaturaController------------------------------------
+
+var id = $parameters.idFatura;
+fetch('http://127.0.0.1:8081/moloni/fatura/pdf',{ 
+		 headers: { 'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'https://claudiasilva.outsystemscloud.com'
+                     },
+		method: 'POST',
+		body: id
+	}).then(function (response){
+	    var res = response.text();
+	   // console.log(res);
+	    var original = Promise.resolve(res);
+        var cast = Promise.resolve(original);
+        cast.then(function(v) {
+          console.log(v);
+          window.open(v);
+        });
+    });
