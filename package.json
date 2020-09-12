@@ -24,7 +24,7 @@
     "https": "^1.0.0",
     "js-md4": "^0.3.2",
     "moloni": "0.0.10",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "ntlm": "^0.1.3",
     "ntlm-auth": "^0.1.3",
     "ntlm-client": "^0.1.1",
